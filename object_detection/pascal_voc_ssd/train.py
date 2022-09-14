@@ -257,7 +257,9 @@ def train():
                 write_entropies_csv(
                     dataset, indices,losses, args.output_superannotate_csv_file)
         else:
-            train_idx.extend(random_indices(pool_idx, rand_state, count=1000))
+            train_idx.extend(random_indices(pool_idx, rand_state, count=2))
+
+        print(f'\n POOL IDS: {pool_idx}')
         cfg = voc
         dataset = data.Subset(VOCDetection(
             root=args.dataset_root,
@@ -278,7 +280,8 @@ def train():
             momentum=args.momentum,
             weight_decay=args.weight_decay
         )
-        for epoch in range(300):
+        for epoch in range(1):
+            print(f'\n\n--------EPOCH {epoch}---------------')
             if epoch == 240:
                 adjust_learning_rate(optimizer)
             for iteration, (images, targets) in enumerate(data_loader):
@@ -311,7 +314,7 @@ def train():
                 conf_loss += loss_c.mean().item()
 
                 if iteration % 10 == 0:
-                    progress.set_description('timer: %.4f sec, ' % (t1 - t0) + 
+                    progress.set_description('timer: %.4f sec, ' % (t1 - t0) +
                         'iter ' + repr(iteration) + (', Loss: %.4f' %
                         (loss.item())))
         folder = join(args.save_folder,
