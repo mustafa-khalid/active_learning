@@ -19,6 +19,7 @@ import torchvision
 import numpy as np
 import argparse
 import tqdm
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath('../../active_learning'))
 from active_learning import ActiveLearning
@@ -55,7 +56,7 @@ parser.add_argument(
     '--basenet', default='vgg16_reducedfc.pth', help='Pretrained base model'
 )
 parser.add_argument(
-    '--batch_size', default=32, type=int, help='Batch size for training'
+    '--batch_size', default=1, type=int, help='Batch size for training'
 )
 parser.add_argument(
     '--resume',
@@ -92,7 +93,7 @@ parser.add_argument(
     '--gamma', default=0.1, type=float, help='Gamma update for SGD'
 )
 parser.add_argument(
-    '--use_active_learning', default=False, type=bool, help='If True, will use active learning'
+    '--use_active_learning', default=True, type=bool, help='If True, will use active learning'
 )
 parser.add_argument(
     '--lamda', default=1, type=int, help='Active learning loss weight'
@@ -134,7 +135,8 @@ if not os.path.exists(args.save_folder):
     os.mkdir(args.save_folder)
 
 
-def train():
+def train(epochs):
+    count=2
     if args.dataset == 'COCO':
         if args.dataset_root == VOC_ROOT:
             if not os.path.exists(COCO_ROOT):
@@ -190,7 +192,7 @@ def train():
 
     #random image choice
     train_idx = []
-    progress = tqdm.tqdm(range(10))
+    progress = tqdm.tqdm(range(int(np.floor(IMG_CNT/count))))
     for cycle in progress:
         net = build_ssd('train', cfg['min_dim'], cfg['num_classes'])
 
@@ -257,8 +259,7 @@ def train():
                 write_entropies_csv(
                     dataset, indices,losses, args.output_superannotate_csv_file)
         else:
-            train_idx.extend(random_indices(pool_idx, rand_state, count=2))
-
+            train_idx.extend(random_indices(pool_idx, rand_state, count=count))
         print(f'\n POOL IDS: {pool_idx}')
         cfg = voc
         dataset = data.Subset(VOCDetection(
@@ -280,7 +281,7 @@ def train():
             momentum=args.momentum,
             weight_decay=args.weight_decay
         )
-        for epoch in range(1):
+        for epoch in range(epochs):
             print(f'\n\n--------EPOCH {epoch}---------------')
             if epoch == 240:
                 adjust_learning_rate(optimizer)
@@ -324,7 +325,7 @@ def train():
             net.state_dict(),
             join(folder, 'cycle_'+str(cycle+1)+'k.pth')
         )
-
+    return loc_loss, conf_loss
 def adjust_learning_rate(optimizer):
     """Sets the learning rate to the initial LR decayed by 10 at every
         specified step
@@ -374,4 +375,17 @@ def update_vis_plot(
 
 
 if __name__ == '__main__':
-    train()
+    loc_losses=[]
+    conf_losses = []
+    epochs=[20,35,50]
+    for eps in epochs:
+        loc_loss, conf_loss=train(eps)
+        loc_losses.append(loc_loss)
+        conf_losses.append(conf_loss)
+
+    plt.plot(epochs,loc_losses)
+    plt.plot(epochs, conf_losses)
+    plt.xlabel('Number of epochs')
+    plt.ylabel('Losses')
+    plt.show()
+

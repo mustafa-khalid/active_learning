@@ -99,8 +99,10 @@ def choose_discriminative_al_indices(
     return new_labeled_idx, confidence_values[idx]
 
 
-def random_indices(unlabeled_idx, rand_state, count=1000):
+def random_indices(unlabeled_idx, rand_state, count=2):
     idx = rand_state.choice(unlabeled_idx, count, replace=False)
+    print('\n\n')
+    print(idx)
     for id in idx:
         unlabeled_idx.remove(id)
     return idx
