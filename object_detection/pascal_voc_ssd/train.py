@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import torch
+#torch.multiprocessing.set_start_method('spawn')
 from pathlib import Path
 from torch.autograd import Variable
 import torch.nn as nn
@@ -56,7 +57,7 @@ parser.add_argument(
     '--basenet', default='vgg16_reducedfc.pth', help='Pretrained base model'
 )
 parser.add_argument(
-    '--batch_size', default=1, type=int, help='Batch size for training'
+    '--batch_size', default=2, type=int, help='Batch size for training'
 )
 parser.add_argument(
     '--resume',
@@ -74,7 +75,7 @@ parser.add_argument(
     help='Number of workers used in dataloading'
 )
 parser.add_argument(
-    '--cuda', default=True, type=str2bool, help='Use CUDA to train model'
+    '--cuda', default=False, type=str2bool, help='Use CUDA to train model'
 )
 parser.add_argument(
     '--lr',
@@ -375,17 +376,18 @@ def update_vis_plot(
 
 
 if __name__ == '__main__':
-    loc_losses=[]
-    conf_losses = []
-    epochs=[20,35,50]
-    for eps in epochs:
-        loc_loss, conf_loss=train(eps)
-        loc_losses.append(loc_loss)
-        conf_losses.append(conf_loss)
-
-    plt.plot(epochs,loc_losses)
-    plt.plot(epochs, conf_losses)
-    plt.xlabel('Number of epochs')
-    plt.ylabel('Losses')
-    plt.show()
+    loc_loss, conf_loss = train(30)
+    # loc_losses=[]
+    # conf_losses = []
+    # epochs=[20,35,50]
+    # for eps in epochs:
+    #     loc_loss, conf_loss=train(eps)
+    #     loc_losses.append(loc_loss)
+    #     conf_losses.append(conf_loss)
+    #
+    # plt.plot(epochs,loc_losses)
+    # plt.plot(epochs, conf_losses)
+    # plt.xlabel('Number of epochs')
+    # plt.ylabel('Losses')
+    # plt.show()
 
